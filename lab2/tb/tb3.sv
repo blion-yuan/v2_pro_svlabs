@@ -144,13 +144,13 @@ module tb3;
   initial begin 
     // USER TODO 3.1
     // instantiate the components chn0/1/2_init chnl0/1/2_gen
-	chnl0_gen = new();
-	chnl1_gen = new();
-	chnl2_gen = new();
+	chnl0_gen = new(0);
+	chnl1_gen = new(1);
+	chnl2_gen = new(2);
 
-	chnl0_init = new();
-	chnl1_init = new();
-	chnl2_init = new();
+	chnl0_init = new("chnl0_initiator");
+	chnl1_init = new("chnl1_initiator");
+	chnl2_init = new("chnl2_initiator");
 	
     chnl0_init.set_name("chnl0_init");
     chnl1_init.set_name("chnl1_init");
@@ -158,8 +158,13 @@ module tb3;
 	
     // USER TODO 3.2
     // assign the interface handle to each chnl_initiator objects
-
+	chnl0_init.set_interface(chnl0_if);
+	chnl1_init.set_interface(chnl1_if);
+	chnl2_init.set_interface(chnl2_if);
     // USER TODO 3.3
+	basic_test();
+	burst_test();
+	fifo_full_test();
     // START TESTs
     $display("*****************all of tests have been finished********************");
     $finish();
@@ -191,6 +196,34 @@ module tb3;
   // each channel send out 500 data
   // then to finish the test
   task automatic burst_test();
+	//	chnl0_gen.initialize(0);
+//    chnl1_gen.initialize(1);
+//    chnl2_gen.initialize(2);
+//    chnl0_init.set_name("chnl0_init");
+//    chnl1_init.set_name("chnl1_init");
+//    chnl2_init.set_name("chnl2_init");
+    chnl0_init.set_idle_cycles(0);
+    chnl1_init.set_idle_cycles(0);
+    chnl2_init.set_idle_cycles(0);
+	$display("burst_test initialized components");
+    wait (rstn === 1'b1);
+    repeat(5) @(posedge clk);
+    $display("burst_test started testing DUT");
+	fork
+      repeat(500) chnl0_init.chnl_write(chnl0_gen.get_trans());
+      repeat(500) chnl1_init.chnl_write(chnl1_gen.get_trans());
+      repeat(500) chnl2_init.chnl_write(chnl2_gen.get_trans());
+    join
+	$display("burst_test finished testing DUT");
+	
+	$display("burst_test: waiting 3 channel fifos to be full");
+    fork
+      wait(chnl0_init.intf.ch_ready == 0);
+      wait(chnl1_init.intf.ch_ready == 0);
+      wait(chnl2_init.intf.ch_ready == 0);
+    join
+    $display("burst_test: 3 channel fifos have reached full");
+	
   endtask
 
   // USER TODO 2.2
@@ -198,6 +231,50 @@ module tb3;
   // have been reached fifo full state, but not all reaching
   // fifo full at the same time
   task automatic fifo_full_test();
+//	chnl0_gen.initialize(0);
+//    chnl1_gen.initialize(1);
+//    chnl2_gen.initialize(2);
+//    chnl0_init.set_name("chnl0_init");
+//    chnl1_init.set_name("chnl1_init");
+//    chnl2_init.set_name("chnl2_init");
+    chnl0_init.set_idle_cycles(0);
+    chnl1_init.set_idle_cycles(0);
+    chnl2_init.set_idle_cycles(0);
+    $display("fifo_full_test started testing DUT");
+	
+	fork: fork_all_run
+	  forever chnl0_init.chnl_write(chnl0_gen.get_trans());
+	  forever chnl1_init.chnl_write(chnl1_gen.get_trans());
+	  forever chnl2_init.chnl_write(chnl2_gen.get_trans());
+    join_none
+    $display("fifo_full_test: 3 initiators running now");
+	
+	$display("fifo_full_test: waiting 3 channel fifos to be full");
+    fork
+      wait(chnl0_init.intf.ch_ready == 0);
+      wait(chnl1_init.intf.ch_ready == 0);
+      wait(chnl2_init.intf.ch_ready == 0);
+    join
+    $display("fifo_full_test: 3 channel fifos have reached full");
+	
+	$display("fifo_full_test: stop 3 initiators running");
+    disable fork_all_run;
+    $display("fifo_full_test: set and ensure all agents' initiator are idle state");
+    fork
+      chnl0_init.chnl_idle();
+      chnl1_init.chnl_idle();
+      chnl2_init.chnl_idle();
+    join
+	
+	$display("fifo_full_test waiting DUT transfering all of data");
+    fork
+      wait(chnl0_init.intf.ch_margin == 'h20);
+      wait(chnl1_init.intf.ch_margin == 'h20);
+      wait(chnl2_init.intf.ch_margin == 'h20);
+    join
+    $display("fifo_full_test: 3 channel fifos have transferred all data");
+
+    $display("fifo_full_test finished testing DUT");
   endtask
 
 endmodule
