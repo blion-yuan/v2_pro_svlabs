@@ -90,4 +90,5 @@ video project
 modelsim
 greybox_tmp
 */work
-
+*.mpf
+*.cr.mti
