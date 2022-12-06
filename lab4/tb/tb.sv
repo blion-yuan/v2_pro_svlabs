@@ -126,12 +126,18 @@ module tb;
   mcdf_intf mcdf_if(.*);
 
   mcdf_data_consistence_basic_test t1;
+  mcdf_reg_write_read_test t2;
+  Mcdf_reg_illegal_access_test t3;
   mcdf_base_test tests[string];
   string name;
 
   initial begin 
     t1 = new();
+	t2 = new();
     tests["mcdf_data_consistence_basic_test"] = t1;
+	tests["mcdf_reg_write_read_test"] = t2;
+	tests["Mcdf_reg_illegal_access_test"] = t3;
+	
     if($value$plusargs("TESTNAME=%s", name)) begin
       if(tests.exists(name)) begin
         tests[name].set_interface(chnl0_if, chnl1_if, chnl2_if, reg_if, fmt_if, mcdf_if);
