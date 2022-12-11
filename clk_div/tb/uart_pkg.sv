@@ -87,14 +87,14 @@ package uart_pkg;
 	endclass:uart_driver
 
 	class uart_generator;
-		randc bit[7:0] div_factor = -1;
+		rand bit[7:0] div_factor = 1;
 //		rand bit[9:0] div_node = -1;
 
 		mailbox #(uart_trans) req_mb;
 		mailbox #(uart_trans) rsp_mb;
 
 		constraint cstr{
-			soft div_factor == -1;
+			soft div_factor > 0;//== 1;
 //			soft div_node == 0;
 		}
 
@@ -111,7 +111,7 @@ package uart_pkg;
 		task send_trans();
 			uart_trans req, rsp;
 			req = new();
-			assert(req.randomize with {local::div_factor >= 0 -> div_factor == local::div_factor; 
+			assert(req.randomize with {local::div_factor > 0 -> div_factor == local::div_factor; 
 									// local::div_node >= 0 -> div_node == local::div_node;
 								   })
 				else $fatal("[RNDFAIL] uart packet randomization failure!");
@@ -140,9 +140,38 @@ package uart_pkg;
 		endfunction
 
 	endclass
-
+	
+	typedef struct packed {
+		bit[7:0] tx_data;
+		bit 	 busy;
+	} mon_data_t;
+  
 	class uart_monitor;
-	// ... ignored
+		local string name;
+		local virtual uart_intf intf;
+		mailbox #(mon_data_t) mon_mb;
+		function new(string name="chnl_monitor");
+			this.name = name;
+		endfunction
+		function void set_interface(virtual uart_intf intf);
+			if(intf == null)
+				$error("interface handle is NULL, please check if target interface has been intantiated");
+			else
+				this.intf = intf;
+		endfunction
+		task run();
+		  this.mon_trans();
+		endtask
+
+		task mon_trans();
+//		  mon_data_t m;
+//		  forever begin
+//			@(posedge intf.clk iff (intf.mon_ck.uart_txd==='b0 && m.busy==='b0));
+//			m.data = intf.mon_ck.ch_data;
+//			mon_mb.put(m);
+//			$display("%0t %s monitored channle data %8x", $time, this.name, m.data);
+//		  end
+		endtask
 	endclass
 	
 	class uart_agent;

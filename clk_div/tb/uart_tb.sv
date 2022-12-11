@@ -6,6 +6,12 @@ interface uart_intf(input clk, input rstn);
 		default input #1ns output #1ns;
 	output uart_txd;
 	endclocking
+	
+	clocking mon_ck @(posedge clk);
+		default input #1ns output #1ns;
+	output uart_txd;
+	endclocking
+	
 endinterface
 
 module uart_tb;
