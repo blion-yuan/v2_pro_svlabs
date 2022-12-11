@@ -24,7 +24,7 @@ module uart_rx(
 	input  wire 		rst_n,
 	input  wire 		clk_i,
 	input  wire 		uart_rx_i,
-    input  wire [3:0]   buad_set_i,
+    input  wire [2:0]   buad_set_i,
 	
 	output wire [7:0]	rx_data_o,
 	output wire 		rx_done_o,
