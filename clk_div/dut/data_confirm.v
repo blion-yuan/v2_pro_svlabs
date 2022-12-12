@@ -44,11 +44,11 @@ module data_confirm(
   always@(posedge clk_i or negedge rst_n)begin
     if(!rst_n)
       div_en <= 1'b0;
-    else if(con_bit_i == 2'b11)
+    else if(con_bit_i == `UART_INPUT)
       div_en <= uart_rdone_i;
-    else if(con_bit_i == 2'b10)
+    else if(con_bit_i == `I2C_INPUT)
       div_en <= i2c_rdone_i;
-    else if(con_bit_i == 2'b00)
+    else if(con_bit_i == `SPI_INPUT)
       div_en <= spi_rdone_i;
     else
       div_en <= 1'b0;

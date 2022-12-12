@@ -23,11 +23,10 @@
 module reg_ctrl(
   input  wire       rst_n,
   input  wire       clk_i,
-  input  wire [7:0] div_data_i,
+  input  wire [7:0]	div_data_i,
   input  wire [7:0] cmd_addr_i,
   input  wire [7:0] cmd_data_i,
-  input  wire       cmd_wr_i,
-  input  wire       cmd_rd_i,
+  input  wire [1:0] cmd_opt_i,
   output wire [7:0] cmd_rdata_o,
   output wire [1:0] con_bit_o,
   output wire [2:0] uart_buad_o
@@ -46,7 +45,7 @@ module reg_ctrl(
   always@(posedge clk_i or negedge rst_n)begin
     if(!rst_n)
       chnnel_sel <= 8'h03;
-    else if(cmd_wr_i != 1'b1)
+    else if(cmd_opt_i != `WRITE)
       chnnel_sel <= chnnel_sel;
     else if(cmd_addr_i == `CHNEL_SEL)
       chnnel_sel <= cmd_data_i;
@@ -57,7 +56,7 @@ module reg_ctrl(
   always@(posedge clk_i or negedge rst_n)begin
     if(!rst_n)
       cmd_rdata <= 8'h00;
-    else if(cmd_rd_i != 1'b1)
+    else if(cmd_opt_i != `READ)
       cmd_rdata <= cmd_rdata;
     else if(cmd_addr_i == `CHNEL_SEL)
       cmd_rdata <= {6'b00_0000,chnnel_sel[1:0]};
@@ -72,7 +71,7 @@ module reg_ctrl(
   always@(posedge clk_i or negedge rst_n)begin
     if(!rst_n)
       uart_buad <= 8'h05;
-    else if(cmd_wr_i != 1'b1)
+    else if(cmd_opt_i != `WRITE)
       uart_buad <= uart_buad;
     else if(cmd_addr_i == `UART_BUAD)
       uart_buad <= {5'b0_0000,cmd_data_i[2:0]};

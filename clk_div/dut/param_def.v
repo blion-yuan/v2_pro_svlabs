@@ -1,6 +1,6 @@
 
-//`define  ADDR_WIDTH 8
-//`define  CMD_DATA_WIDTH 32
+`define  ADDR_WIDTH 8
+`define  DATA_WIDTH 8
 
 `define  WRITE 2'b10          //Register operation command
 `define  READ  2'b01
@@ -10,6 +10,10 @@
 `define  UART_BUAD   8'h04
 
 `define  DVI_FAC    8'h10
+
+`define	 UART_INPUT	2'b11
+`define	 I2C_INPUT	2'b10
+`define	 SPI_INPUT	2'b00
 
 //`define SLV0_RW_ADDR 8'h00    //Register address 
 //`define SLV1_RW_ADDR 8'h04

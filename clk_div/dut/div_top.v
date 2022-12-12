@@ -25,8 +25,7 @@ module div_top(
   input  wire       clk_i,
   input  wire [7:0] cmd_addr_i,
   input  wire [7:0] cmd_data_i,
-  input  wire       cmd_wr_i,
-  input  wire       cmd_rd_i,
+  input  wire [1:0] cmd_opt_i,
   output wire       cmd_rdata_o,
   
   input  wire       uart_rx_i,
@@ -36,7 +35,7 @@ module div_top(
   input  wire       spi_clk_i,
   input  wire       spi_mosi_i,
   output wire       spi_miso_o,
-  output wire       uart_tx_o,
+//  output wire       uart_tx_o,
   output wire       div_en_o,
   output wire       div_clk_o
   );
@@ -71,8 +70,7 @@ module div_top(
     .div_data_i     (div_data   ),
     .cmd_addr_i     (cmd_addr_i ),
     .cmd_data_i     (cmd_data_i ),
-    .cmd_wr_i       (cmd_wr_i   ),
-    .cmd_rd_i       (cmd_rd_i   ),
+    .cmd_opt_i      (cmd_opt_i  ),
     .cmd_rdata_o    (cmd_rdata_o),
     .con_bit_o      (con_bit    ),
     .uart_buad_o    (uart_buad  )
@@ -109,14 +107,14 @@ module div_top(
     .spi_rdone_o    (spi_rdone  )
   );
   
-  uart_tx U_uart_tx(
-    .rst_n          (rst_sync   ),
-    .clk_i          (clk_i      ),
-    .tx_en_i        (uart_rdone ),
-    .tx_data_i      (uart_rdata ),
-    .uart_tx_o      (uart_tx_o  ),
-    .tx_done_o      (tx_done    )
-  );
+//  uart_tx U_uart_tx(
+//    .rst_n          (rst_sync   ),
+//    .clk_i          (clk_i      ),
+//    .tx_en_i        (uart_rdone ),
+//    .tx_data_i      (uart_rdata ),
+//    .uart_tx_o      (uart_tx_o  ),
+//    .tx_done_o      (tx_done    )
+//  );
   
   data_confirm U_data_confirm(
     .rst_n          (rst_sync   ),
