@@ -52,6 +52,8 @@ module clk_div(
 			div_cnt <= div_num - 8'd1;
 		else if(div_cnt == 8'd0)
 			div_cnt <= div_num - 8'd1;
+        else if(div_en_i == 1'b1)
+            div_cnt <= div_num - 8'd1;
 		else
 			div_cnt <= div_cnt - 8'd1;
 	end
