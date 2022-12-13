@@ -15,6 +15,12 @@
 `define	 I2C_INPUT	2'b10
 `define	 SPI_INPUT	2'b00
 
+`define  BUAD_9600	     9'd321
+`define  BUAD_19200	     9'd161
+`define  BUAD_38400	     9'd80 
+`define  BUAD_57600	     9'd53 
+`define  BUAD_115200	 9'd27 
+
 //`define SLV0_RW_ADDR 8'h00    //Register address 
 //`define SLV1_RW_ADDR 8'h04
 //`define SLV2_RW_ADDR 8'h08

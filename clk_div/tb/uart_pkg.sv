@@ -3,17 +3,14 @@ package uart_pkg;
 
 	class uart_trans;
 		rand bit[7:0] div_factor;
-//		rand bit[9:0] div_node;
-    
+        bit busy;
 		constraint cstr {
 			soft div_factor inside {[1:255]};
-	//		soft div_node inside {[div_factor *2 : div_factor * 3]};
 		};
     
 		function uart_trans clone();
 			uart_trans d = new();
 			d.div_factor = this.div_factor;
-	//      d.div_node = this.div_node;
 			return d;
 		endfunction
     
@@ -21,8 +18,8 @@ package uart_pkg;
 			string s;
 			s = {s, $sformatf("=======================================\n")};
 			s = {s, $sformatf("uart_trans object content is as below: \n")};
-			s = {s, $sformatf("div_data = %2x: \n", this.div_factor)};
-	//		s = {s, $sformatf("div_node = %2x: \n", this.div_node)};
+			s = {s, $sformatf("div_factor = %d: \n", this.div_factor)};
+			s = {s, $sformatf("uart_busy = %d: \n", this.busy)};
 			s = {s, $sformatf("=======================================\n")};
 			return s;
 		endfunction
@@ -54,6 +51,7 @@ package uart_pkg;
 		endtask
 
 		task do_reset();
+            intf.uart_txd <= 1;
 			forever begin
 				@(negedge intf.rstn);
 				intf.uart_txd <= 1;
@@ -67,7 +65,7 @@ package uart_pkg;
 				this.req_mb.get(req);
 				this.uart_send(req);
 				rsp = req.clone();
-//				rsp.rsp = 1;
+				rsp.busy = 0;
 				this.rsp_mb.put(rsp);
 			end
 		endtask
@@ -82,20 +80,20 @@ package uart_pkg;
 					intf.uart_txd <= t.div_factor[i];
 				end
 			end
-			repeat(434)	intf.uart_txd <= 1;		  
+			repeat(434)	@(posedge intf.clk)begin
+				intf.uart_txd <= 1;
+			end		  
 		endtask
 	endclass:uart_driver
 
 	class uart_generator;
-		rand bit[7:0] div_factor = 1;
-//		rand bit[9:0] div_node = -1;
-
+		rand bit[7:0] div_factor = 0;
+        
 		mailbox #(uart_trans) req_mb;
 		mailbox #(uart_trans) rsp_mb;
 
 		constraint cstr{
 			soft div_factor > 0;//== 1;
-//			soft div_node == 0;
 		}
 
 		function new();
@@ -111,16 +109,16 @@ package uart_pkg;
 		task send_trans();
 			uart_trans req, rsp;
 			req = new();
+            req.busy = 1;
 			assert(req.randomize with {local::div_factor > 0 -> div_factor == local::div_factor; 
-									// local::div_node >= 0 -> div_node == local::div_node;
 								   })
 				else $fatal("[RNDFAIL] uart packet randomization failure!");
 			$display(req.sprint());
 			this.req_mb.put(req);
 			this.rsp_mb.get(rsp);
 			$display(rsp.sprint());
-//			assert(rsp.rsp)
-//				else $error("[RSPERR] %0t error response received!", $time);
+			assert(!rsp.busy)
+				else $error("[RSPERR] %0t error response received!", $time);
 		endtask
 
 		function string sprint();
@@ -128,7 +126,6 @@ package uart_pkg;
 			s = {s, $sformatf("=======================================\n")};
 			s = {s, $sformatf("uart_generator object content is as below: \n")};
 			s = {s, $sformatf("div_factor = %0d: \n", this.div_factor)};
-//			s = {s, $sformatf("div_node = %0d: \n", this.div_node)};
 			s = {s, $sformatf("=======================================\n")};
 			return s;
 		endfunction
@@ -143,7 +140,6 @@ package uart_pkg;
 	
 	typedef struct packed {
 		bit[7:0] tx_data;
-		bit 	 busy;
 	} mon_data_t;
   
 	class uart_monitor;
@@ -164,40 +160,45 @@ package uart_pkg;
 		endtask
 
 		task mon_trans();
-//		  mon_data_t m;
-//		  forever begin
-//			@(posedge intf.clk iff (intf.mon_ck.uart_txd==='b0 && m.busy==='b0));
-//			m.data = intf.mon_ck.ch_data;
-//			mon_mb.put(m);
-//			$display("%0t %s monitored channle data %8x", $time, this.name, m.data);
-//		  end
+          bit [2:0] cnt [8];
+		  mon_data_t m;
+		  forever begin
+            @(posedge intf.mon_ck.uart_txd)
+            repeat(300)	@(posedge intf.clk);
+            foreach(cnt[i])begin
+				repeat(434) @(posedge intf.clk);
+                m.tx_data >>= 1;
+                if(intf.mon_ck.uart_txd)
+                    m.tx_data |= 8'h80;
+			end
+            repeat(434)	@(posedge intf.clk);
+			mon_mb.put(m);
+			$display("%0t %s monitored channle data %8x", $time, this.name, m.tx_data);
+		  end
 		endtask
 	endclass
 	
 	class uart_agent;
 		local string name;
 		uart_driver driver;
-		uart_generator generator;
+		uart_monitor monitor;
 		local virtual uart_intf vif;
 		function new(string name = "uart_agent");
 			this.name = name;
-			this.driver = new({name, ".driver"});
-			this.generator = new();
-//			this.monitor = new({name, ".monitor"});
-			this.driver.req_mb = this.generator.req_mb;
-			this.driver.rsp_mb = this.generator.rsp_mb;
+			this.driver = new({name, ".uart_driver"});
+			this.monitor = new({name, ".monitor"});
 		endfunction
 
 		function void set_interface(virtual uart_intf vif);
 		  this.vif = vif;
 		  driver.set_interface(vif);
-//		  monitor.set_interface(vif);
+		  monitor.set_interface(vif);
 		endfunction
+        
 		task run();
 		  fork
 			driver.run();
-			generator.start();
-//			monitor.run();
+			monitor.run();
 		  join_any
 		endtask
 	endclass:uart_agent

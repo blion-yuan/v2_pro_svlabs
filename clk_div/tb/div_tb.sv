@@ -96,14 +96,14 @@ module tb;
   initial begin 
     clk <= 0;
     forever begin
-      #5 clk <= !clk;
+      #10 clk <= !clk;
     end
   end
   
   // reset trigger
   initial begin 
     #10 rstn <= 0;
-    repeat(10) @(posedge clk);
+    repeat(2) @(posedge clk);
     rstn <= 1;
   end
 

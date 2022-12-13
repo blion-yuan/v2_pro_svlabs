@@ -18,7 +18,7 @@
 // Additional Comments:
 // 
 //////////////////////////////////////////////////////////////////////////////////
-
+`include "param_def.v"
 
 module uart_rx(
 	input  wire 		rst_n,
@@ -37,11 +37,11 @@ module uart_rx(
 	// 1/57600 = 17361.11ns / 20ns /16 = 54
 	// 1/115200= 8680.55ns  / 20ns /16 = 27
 	
-	localparam	BUAD_9600	= 9'd325 - 9'd1,
-				BUAD_19200	= 9'd162 - 9'd1,
-				BUAD_38400	= 9'd81 - 9'd1,
-				BUAD_57600	= 9'd54 - 9'd1,
-				BUAD_115200	= 9'd27 - 9'd1;
+//	localparam	BUAD_9600	= 9'd325 - 9'd1,
+//				BUAD_19200	= 9'd162 - 9'd1,
+//				BUAD_38400	= 9'd81 - 9'd1,
+//				BUAD_57600	= 9'd54 - 9'd1,
+//				BUAD_115200	= 9'd27 - 9'd1;
 				
 //	parameter	BUAD_SET	= 3'd5;
 	
@@ -103,17 +103,17 @@ module uart_rx(
 	
 	always@(posedge clk_i or negedge rst_n)begin
 		if(!rst_n)
-			buad_load_num <= BUAD_9600;
+			buad_load_num <= `BUAD_9600;
 		else if(buad_set_i == 3'd1)
-			buad_load_num <= BUAD_9600;
+			buad_load_num <= `BUAD_9600;
 		else if(buad_set_i == 3'd2)
-			buad_load_num <= BUAD_19200;
+			buad_load_num <= `BUAD_19200;
 		else if(buad_set_i == 3'd3)
-			buad_load_num <= BUAD_38400;
+			buad_load_num <= `BUAD_38400;
 		else if(buad_set_i == 3'd4)
-			buad_load_num <= BUAD_57600;
+			buad_load_num <= `BUAD_57600;
 		else
-			buad_load_num <= BUAD_115200;
+			buad_load_num <= `BUAD_115200;
 	end
 	
 	always@(posedge clk_i or negedge rst_n)begin
