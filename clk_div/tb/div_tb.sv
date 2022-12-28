@@ -108,7 +108,7 @@ module tb;
   end
 
   import uart_pkg::*;
-  import spi_pkg::*;
+//  import spi_pkg::*;
   import reg_pkg::*;
   import div_pkg::*;
   import plat_pkg::*;
